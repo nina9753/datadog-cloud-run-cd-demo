@@ -1,0 +1,11 @@
+apiVersion: v3
+kind: service
+metadata:
+  name: datadog-cloud-run-cd-demo
+  displayName: Datadog Cloud Run CD Demo
+  owner: serverless
+  description: Staging-only demo for GitHub-driven Cloud Run deployment and Serverless instrumentation.
+  links:
+    - name: Source
+      type: repo
+      url: https://github.com/nina9753/datadog-cloud-run-cd-demo

@@ -7,12 +7,17 @@ if [[ $# -ne 1 ]]; then
 fi
 
 service_url="${1%/}"
+curl_args=(--fail --silent --show-error)
 
-curl --fail --silent --show-error "$service_url/health"
-curl --fail --silent --show-error "$service_url/"
-curl --fail --silent --show-error "$service_url/work?iterations=5000"
+if [[ -n "${CLOUD_RUN_IDENTITY_TOKEN:-}" ]]; then
+  curl_args+=(--header "Authorization: Bearer ${CLOUD_RUN_IDENTITY_TOKEN}")
+fi
 
-status_code="$(curl --silent --output /dev/null --write-out '%{http_code}' "$service_url/error")"
+curl "${curl_args[@]}" "$service_url/health"
+curl "${curl_args[@]}" "$service_url/"
+curl "${curl_args[@]}" "$service_url/work?iterations=5000"
+
+status_code="$(curl "${curl_args[@]}" --output /dev/null --write-out '%{http_code}' "$service_url/error" || true)"
 if [[ "$status_code" != "500" ]]; then
   echo "expected /error to return 500, got $status_code" >&2
   exit 1

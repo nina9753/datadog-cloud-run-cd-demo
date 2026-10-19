@@ -1,8 +1,12 @@
 substitutions:
-  _AR_REPOSITORY: cloud-run-demo
+  _AR_REPOSITORY: cloud-run-source-deploy
+  _REPOSITORY_PATH: nina9753-datadog-cloud-run-cd-demo
   _REGION: europe-west1
-  _SERVICE_NAME: datadog-cloud-run-cd-demo
-  _GCB_TRIGGER_ID: manual-build
+  _SERVICE_NAME: datadog-cloud-run-cd-demo-git
+  _DD_SERVICE: datadog-cloud-run-cd-demo
+  _DD_SITE: datad0g.com
+  _DATADOG_API_KEY_SECRET: dd-api-key-gcp-staging
+  _GCB_TRIGGER_ID: 7ee45bdd-e8e3-45d5-9bf7-9ac0fcc4bca9
 
 steps:
   - id: build
@@ -14,14 +18,17 @@ steps:
       - --build-arg
       - DD_GIT_COMMIT_SHA=$COMMIT_SHA
       - --tag
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}:$COMMIT_SHA
+      - --tag
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}:latest
       - .
 
   - id: push
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}
 
   - id: deploy
     name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
@@ -30,18 +37,19 @@ steps:
       - run
       - deploy
       - ${_SERVICE_NAME}
-      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}:$COMMIT_SHA
       - --region=${_REGION}
       - --platform=managed
-      - --allow-unauthenticated
       - --cpu-throttling
       - --min=0
       - --max=3
-      - --labels=gcb-trigger-id=${_GCB_TRIGGER_ID},source-repository=nina9753-datadog-cloud-run-cd-demo
-      - --set-env-vars=DD_SERVICE=${_SERVICE_NAME},DD_ENV=staging,DD_VERSION=$COMMIT_SHA,DD_GIT_REPOSITORY_URL=https://github.com/nina9753/datadog-cloud-run-cd-demo,DD_GIT_COMMIT_SHA=$COMMIT_SHA
+      - --update-labels=managed-by=cloud-build,gcb-trigger-id=${_GCB_TRIGGER_ID},source-repository=nina9753-datadog-cloud-run-cd-demo,service=${_DD_SERVICE}
+      - --update-secrets=DD_API_KEY=${_DATADOG_API_KEY_SECRET}:latest
+      - --update-env-vars=DD_SITE=${_DD_SITE},DD_SERVICE=${_DD_SERVICE},DD_ENV=staging,DD_VERSION=$COMMIT_SHA,DD_GIT_REPOSITORY_URL=https://github.com/nina9753/datadog-cloud-run-cd-demo,DD_GIT_COMMIT_SHA=$COMMIT_SHA,DD_LOGS_ENABLED=true,DD_LOGS_INJECTION=true,DD_SOURCE=python
 
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}:$COMMIT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}:latest
 
 options:
   logging: CLOUD_LOGGING_ONLY

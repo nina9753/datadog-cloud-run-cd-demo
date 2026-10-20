@@ -1,4 +1,4 @@
-FROM gcr.io/datadoghq/serverless-init@sha256:161423dc6fc3d55e20902c3f5818cef104a4849277b4d84c236fef7ecae0619f AS datadog-init
+FROM gcr.io/datadoghq/serverless-init@sha256:d741777c3f11ef4c0e59eb4200316789183bf2eb24b970684104f0a17cb30d5a AS datadog-init
 
 FROM python:3.12-slim
 

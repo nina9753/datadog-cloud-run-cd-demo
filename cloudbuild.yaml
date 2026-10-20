@@ -40,12 +40,12 @@ steps:
       - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}:$COMMIT_SHA
       - --region=${_REGION}
       - --platform=managed
-      - --cpu-throttling
+      - --no-cpu-throttling
       - --min=0
       - --max=3
       - --update-labels=managed-by=cloud-build,gcb-trigger-id=${_GCB_TRIGGER_ID},source-repository=nina9753-datadog-cloud-run-cd-demo,service=${_DD_SERVICE}
       - --update-secrets=DD_API_KEY=${_DATADOG_API_KEY_SECRET}:latest
-      - --update-env-vars=DD_SITE=${_DD_SITE},DD_SERVICE=${_DD_SERVICE},DD_ENV=staging,DD_VERSION=$COMMIT_SHA,DD_GIT_REPOSITORY_URL=https://github.com/nina9753/datadog-cloud-run-cd-demo,DD_GIT_COMMIT_SHA=$COMMIT_SHA,DD_LOGS_ENABLED=true,DD_LOGS_INJECTION=true,DD_SOURCE=python
+      - --update-env-vars=DD_SITE=${_DD_SITE},DD_SERVICE=${_DD_SERVICE},DD_ENV=staging,DD_VERSION=$COMMIT_SHA,DD_GIT_REPOSITORY_URL=https://github.com/nina9753/datadog-cloud-run-cd-demo,DD_GIT_COMMIT_SHA=$COMMIT_SHA,DD_LOGS_ENABLED=true,DD_LOGS_INJECTION=true,DD_LOGS_CONFIG_BATCH_WAIT=1,DD_TRACE_DEBUG=true,DD_LOG_LEVEL=debug,DD_SOURCE=python
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_REPOSITORY_PATH}/${_SERVICE_NAME}:$COMMIT_SHA

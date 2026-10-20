@@ -10,6 +10,7 @@ app = Flask(__name__)
 
 @app.get("/")
 def index():
+    print("Hello from the Datadog Cloud Run CD demo", flush=True)
     return jsonify(
         message="Datadog Cloud Run CD demo",
         service=os.getenv("DD_SERVICE", "datadog-cloud-run-cd-demo"),

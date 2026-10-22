@@ -34,11 +34,14 @@ use registry credentials, but this app should use managed identity instead.
    Dockerfile, build arguments, workflow YAML, or source control. Decide whether
    agent log collection or existing Azure forwarding owns logs to avoid duplicates.
 5. Create a dedicated GitHub OIDC deployment identity. Restrict its federation
-   subject to `repo:nina9753/datadog-cloud-run-cd-demo:environment:azure-staging`,
+   subject to `repo:nina9753@31524679/datadog-cloud-run-cd-demo@1425915995:environment:azure-staging`,
    issuer `https://token.actions.githubusercontent.com`, and audience
    `api://AzureADTokenExchange`. Scope its permissions to updating this app and
    pushing images to this registry; do not grant subscription-wide Contributor.
    Registry permissions must match whether the registry uses classic RBAC or ABAC.
+   This repository's GitHub OIDC subject includes owner and repository IDs. Match
+   the subject reported by the workflow's Azure login step exactly; the name-only
+   subject does not authenticate this repository.
 6. Create a GitHub environment named `azure-staging`, restrict deployments to
    `main`, and configure these environment variables:
 

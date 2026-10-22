@@ -39,6 +39,9 @@ use registry credentials, but this app should use managed identity instead.
    `api://AzureADTokenExchange`. Scope its permissions to updating this app and
    pushing images to this registry; do not grant subscription-wide Contributor.
    Registry permissions must match whether the registry uses classic RBAC or ABAC.
+   For this classic-RBAC registry, use registry-scoped `AcrPush` plus `Reader`
+   so the workflow can push images and read the registry endpoint. The app-scoped
+   deployment role must also permit updating resource tags.
    This repository's GitHub OIDC subject includes owner and repository IDs. Match
    the subject reported by the workflow's Azure login step exactly; the name-only
    subject does not authenticate this repository.
@@ -69,6 +72,13 @@ Code Integration connection.
 The workflow verifies the endpoint's service and commit. Separately verify
 serverless-init inventory, traces, logs, and source links in Datadog; a successful
 HTTP smoke test does not prove telemetry delivery.
+
+After verification, the workflow merges `deployment_provider`,
+`deployment_repository`, `deployment_workflow`, `deployment_run_id`,
+`deployment_revision`, and `deployment_commit_sha` tags onto the app. Existing
+unrelated tags are preserved. These describe the last recorded GitHub deployment,
+not every retained revision. The UI must distinguish this reported metadata from
+independently verified GitHub run status and from a different selected revision.
 
 Shared application changes can deploy to both clouds. Azure's path filter prevents
 GCP-only configuration changes from deploying to Azure, but it does not change the

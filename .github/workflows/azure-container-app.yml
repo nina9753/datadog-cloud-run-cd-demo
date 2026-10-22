@@ -103,3 +103,23 @@ jobs:
           done
           echo 'The endpoint did not serve the expected commit and service.'
           exit 1
+
+      - name: Record the verified deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          app=$(az containerapp show --name "$AZURE_CONTAINER_APP" \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --query '{id:id,revision:properties.latestReadyRevisionName,latest:properties.latestRevisionName,containers:properties.template.containers[].{name:name,image:image}}' -o json)
+          echo "$app" | jq -e --arg container "$AZURE_CONTAINER_NAME" --arg image "$DEPLOY_IMAGE" \
+            '.revision != null and .revision == .latest and any(.containers[]; .name == $container and .image == $image)' >/dev/null
+          app_id=$(echo "$app" | jq -r '.id')
+          revision=$(echo "$app" | jq -r '.revision')
+          az tag update --resource-id "$app_id" --operation Merge --tags \
+            "deployment_provider=github-actions" \
+            "deployment_repository=github.com/$GITHUB_REPOSITORY" \
+            "deployment_workflow=.github/workflows/azure-container-app.yml" \
+            "deployment_run_id=$GITHUB_RUN_ID" \
+            "deployment_revision=$revision" \
+            "deployment_commit_sha=$GITHUB_SHA" \
+            --output none

@@ -76,6 +76,7 @@ jobs:
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --container-name "$AZURE_CONTAINER_NAME" \
             --image "$DEPLOY_IMAGE" \
+            --revision-suffix "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
             --set-env-vars \
               "DD_SERVICE=$DD_SERVICE" \
               "DD_ENV=staging" \
@@ -112,7 +113,8 @@ jobs:
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --query '{id:id,revision:properties.latestReadyRevisionName,latest:properties.latestRevisionName,containers:properties.template.containers[].{name:name,image:image}}' -o json)
           echo "$app" | jq -e --arg container "$AZURE_CONTAINER_NAME" --arg image "$DEPLOY_IMAGE" \
-            '.revision != null and .revision == .latest and any(.containers[]; .name == $container and .image == $image)' >/dev/null
+            --arg revision "${AZURE_CONTAINER_APP}--gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            '.revision == $revision and .revision == .latest and any(.containers[]; .name == $container and .image == $image)' >/dev/null
           app_id=$(echo "$app" | jq -r '.id')
           revision=$(echo "$app" | jq -r '.revision')
           az tag update --resource-id "$app_id" --operation Merge --tags \
